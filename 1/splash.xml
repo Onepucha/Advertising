@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash screen file, saved 9/7/2021 10:02:52 AM using CourseLab 200122 -->
+<splash>
+<settings>
+<showsplash>yes</showsplash>
+<fitwindow>no</fitwindow>
+<fit_small_window>no</fit_small_window>
+</settings>
+<data>
+<![CDATA[<div style="position: absolute; box-sizing: border-box; left: 0px; top: 0px; width: 1400px; height: 700px;"><div class="baron" style="height: 100%;">
+    <div class="baron__scroller lmm-overflow-y-auto">
+        <div class="lmm-container hide-xs" style="
+                                                background-image: url('images/splash.png');
+                                                background-repeat: no-repeat;
+                                                height: 100%;
+                                                margin: 20px auto 0 auto;
+                                                ">
+            <div class="position-relative" style="top: 122px;left: 41px;">
+                <div class="text__splash mb-5"><span class="text-light-white">Реклама:</span>
+                    <br />
+                    как не совершить
+                </div>
+                <img alt="splash" class="mb-5" src="images/splash_img.png" />
+                <div class="text__splash mb-20">распространённую
+                    <br />
+                    ошибку
+                </div>
+                <div class="btn xxl btn__primary btn__primary--orange mb-50" onclick="StartModule();">Начать курс
+                </div>
+                <h6 class="h6 text-uppercase text-gray hide">О курсе
+                </h6>
+            </div>
+        </div>
+        <div class="lmm-container hide show-xs" style="
+                                                     background-image: url('images/splash__mobile.png');
+                                                     background-repeat: no-repeat;
+                                                     width: 290px;
+                                                     height: 682px;
+                                                     margin: 20px auto 0 auto;
+                                                     ">
+            <div class="position-relative" style="top: 195px;left: 5px;">
+                <div class="text__splash mb-5"><span class="text-light-white">Реклама:</span>
+                    <br />
+                    как не совершить
+                </div>
+                <img alt="splash" class="mb-5" src="images/splash_img.png" width="165" />
+                <div class="text__splash mb-10">распространённую
+                    <br />
+                    ошибку
+                </div>
+                <div class="btn xxl btn__primary btn__primary--orange" onclick="StartModule();">Начать курс
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="baron__track">
+        <div class="baron__bar">&nbsp;
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        baron({
+            root: '.baron',
+            scroller: '.baron__scroller',
+            bar: '.baron__bar'
+        }).update();
+    });
+</script></div>]]>
+</data>
+</splash>

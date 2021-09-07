@@ -1,0 +1,181 @@
+<script type="text/x-template" id="lmm-final-test-container-template">
+  <div>
+        <div class="lmm-answers__question_count">
+          <div class="lmm-indicator__main lmm-margin__bottom-20">
+            <span class="lmm-indicator__item">{{curQuestionNumber + 1}}</span>
+            <span class="lmm-indicator__item red">{{curQuestionNumber + 1}}</span>
+            <span class="lmm-indicator__item green">{{curQuestionNumber + 1}}</span>
+  </div>
+  </div>
+        <div v-if="questions.length > 0" class="lmm-answers__question-single">
+          <div class="lmm-questions__content">
+              <p class="lmm-text lmm-text__l">{{questions[curQuestionNumber].question_text}}</p>
+  </div>
+          <div v-if="questions[curQuestionNumber].question_type === 'radio'" class="lmm-answers__q_var">
+            <div v-for="(answer, index) in questions[curQuestionNumber].answers" :key="answer.answer_text + now" :class="['lmm-left__button subordinate-choice competere']">
+              <input :checked="answer.is_selected" :disabled="answer.disabled === true" :id="String(answer.answer_text)"
+                @change="changeRadioAnswer($event, answer)" name="radio-box-group" type="radio" class="lmm-radiobox">
+              <label :for="String(answer.answer_text)" :class="['lmm-text__l s__label', {
+                  'incorrect': isInCorrectAnswer,
+                  'correct': isCorrectAnswer
+                }]">{{answer.answer_text}}</label>
+  </div>
+  </div>
+          <div v-else-if="questions[curQuestionNumber].question_type === 'checkbox'" class="lmm-answers__q_var">
+            <div v-for="(answer, index) in questions[curQuestionNumber].answers" :class="[
+                'lmm-checkbox s__item competere subordinate-choice']" :key="answer.answer_text + now">
+              <input :checked="answer.is_selected" :disabled="answer.disabled === true"
+                @change="changeCheckboxAnswer($event, answer)" name="1" :id="String(answer.answer_text)" type="checkbox"
+                class="lmm-checkbox s">
+              <label :for="String(answer.answer_text)" :class="['lmm-checkbox lmm-text__l lmm-text__answers s__label', {
+                'incorrect': isInCorrectAnswer,
+                'correct': isCorrectAnswer
+              }]">{{answer.answer_text}}</label>
+  </div>
+  </div>
+  </div>
+        <!--<div v-if="isCorrectAnswer">Верно</div>-->
+        <!--<div v-if="isInCorrectAnswer">Неверно</div>-->
+        <div class="lmm-answers__accept">
+          <div class="lmm-answers accept__center">
+            <button v-if="isApplyQuestionButtonShow" @click="applyQuestion($event)"
+              class="lmm-button__rounded">Принять ответ</button>
+  </div>
+  </div>
+  </div>
+</script>
+<script>
+  Vue.component('lmm-final-test-container', {
+    template: '#lmm-final-test-container-template',
+    props: {
+      data: {
+        type: Array
+      },
+      random: {
+        type: Boolean
+      },
+      closeTestCallback: {
+        type: Function,
+        default: function () {}
+      },
+      questionThreshold: {
+        type: Number
+      },
+    },
+    data: function () {
+      return {
+        curQuestionNumber: 0,
+        isApplyQuestionButtonShow: false,
+        isCorrectAnswer: false,
+        isInCorrectAnswer: false,
+        now: Date.now(),
+        questions: []
+      };
+    },
+    mounted: function () {
+      if (this.random) {
+        this.shuffleQuestions();
+      }
+      var vm = this;
+      EventBus.$on('reset-assessment', function () {
+        vm.resetAssessment();
+      });
+    },
+    methods: {
+      getData: function () {
+        this.questions = this.data.slice();
+      },
+      shuffleQuestions: function () {
+        this.getData();
+        this.questions.sort(function (el) {
+          return .5 - Math.random();
+        });
+        this.questions = this.questions.slice(0, this.questionThreshold);
+        this.questions.forEach(function (el) {
+          el.answers.sort(function () {
+            return .5 - Math.random();
+          });
+        });
+      },
+      resetAssessment: function () {
+        CLV.oSlide["test_score"] = 0;
+        this.now = Date.now();
+        this.isCorrectAnswer = false;
+        this.isInCorrectAnswer = false;
+        this.curQuestionNumber = 0;
+        this.isApplyQuestionButtonShow = false;
+        this.data.forEach(function (question) {
+          question.answers.forEach(function (answer) {
+            answer.disabled = false;
+            answer.is_selected = false;
+          });
+        });
+        this.shuffleQuestions();
+        $('.baron__scroller').removeClass('off-scroll');
+        $('.lmm-feedback__sub-content').scrollTop(0);
+        $('.baron__scroller').scrollTop(0);
+      },
+      applyQuestion: function () {
+        this.now = Date.now();
+        var is_correct = this.checkAnswer();
+        this.isCorrectAnswer = is_correct;
+        this.isInCorrectAnswer = !is_correct;
+        this.isCorrectAnswer && (CLV.oSlide["test_score"] = ++CLV.oSlide["test_score"] || 1);
+        if (this.curQuestionNumber === this.questions.length - 1) {
+          return this.closeTest();
+        }
+        this.curQuestionNumber++;
+        this.isApplyQuestionButtonShow = false;
+        this.isCorrectAnswer = false;
+        this.isInCorrectAnswer = false;
+        $('.baron__scroller').scrollTop(0);
+      },
+      changeRadioAnswer: function ($event, data) {
+        var a = this.questions[this.curQuestionNumber].answers;
+        for (var i = 0; i < a.length; i++) {
+          a[i].is_selected = false;
+        }
+        this.isApplyQuestionButtonShow = data.is_selected = $event.target.checked;
+      },
+      changeCheckboxAnswer: function ($event, data) {
+        data.is_selected = $event.target.checked;
+        var a = this.questions[this.curQuestionNumber].answers;
+        this.isApplyQuestionButtonShow = false;
+        for (var i = 0; i < a.length; i++) {
+          if (a[i].is_selected) {
+            return this.isApplyQuestionButtonShow = true;
+          }
+        }
+      },
+      closeTest: function () {
+        this.closeTestCallback();
+      },
+      checkRadioType: function () {
+        var a = this.questions[this.curQuestionNumber].answers;
+        for (var i = 0; i < a.length; i++) {
+          if ((a[i].is_correct && !a[i].is_selected) || (!a[i].is_correct && a[i].is_selected)) {
+            return false;
+          }
+        }
+        return true;
+      },
+      checkCheckboxType: function () {
+        var a = this.questions[this.curQuestionNumber].answers;
+        for (var i = 0; i < a.length; i++) {
+          if ((a[i].is_correct && !a[i].is_selected) || (!a[i].is_correct && a[i].is_selected)) {
+            return false;
+          }
+        }
+        return true;
+      },
+      checkAnswer: function () {
+        if (this.questions[this.curQuestionNumber].question_type === 'radio') {
+          return this.checkRadioType();
+        } else if (this.questions[this.curQuestionNumber].question_type === 'checkbox') {
+          return this.checkCheckboxType();
+        }
+        throw 'Неизвестный тип теста';
+      }
+    }
+  });
+</script>
